@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Email Rotation System</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            padding: 40px;
+            max-width: 800px;
+            width: 100%;
+        }
+        
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+        }
+        
+        .current-email {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            border-radius: 15px;
+            text-align: center;
+            margin-bottom: 30px;
+            position: relative;
+        }
+        
+        .email-text {
+            font-size: 1.5em;
+            font-weight: bold;
+            margin-bottom: 15px;
+            word-break: break-all;
+        }
+        
+        .copy-btn {
+            background: white;
+            color: #667eea;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 25px;
+            font-size: 1em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .copy-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+        
+        .copy-btn.copied {
+            background: #4CAF50;
+            color: white;
+        }
+        
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .stat-card {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+        }
+        
+        .stat-number {
+            font-size: 2em;
+            font-weight: bold;
+            color: #667eea;
+            margin-bottom: 5px;
+        }
+        
+        .stat-label {
+            color: #666;
+            font-size: 0.9em;
+        }
+        
+        .controls {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        
+        .btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 8px;
+            font-size: 1em;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .btn:hover {
+            background: #5a67d8;
+            transform: translateY(-2px);
+        }
+        
+        .btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .history {
+            margin-top: 30px;
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+        }
+        
+        .history h3 {
+            color: #333;
+            margin-bottom: 15px;
+        }
+        
+        .history-list {
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        
+        .history-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        
+        .history-item:last-child {
+            border-bottom: none;
+        }
+        
+        .history-email {
+            font-family: monospace;
+            color: #555;
+        }
+        
+        .history-time {
+            color: #888;
+            font-size: 0.8em;
+        }
+        
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #4CAF50;
+            color: white;
+            padding: 15px 20px;
+            border-radius: 8px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            transform: translateX(400px);
+            transition: transform 0.3s ease;
+            z-index: 1000;
+        }
+        
+        .notification.show {
+            transform: translateX(0);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📧 Email Rotation System</h1>
+        
+        <div class="current-email">
+            <div class="email-text" id="currentEmail">Loading...</div>
+            <button class="copy-btn" id="copyBtn" onclick="copyEmail()">📋 Copy Email</button>
+        </div>
+        
+        <div class="stats">
+            <div class="stat-card">
+                <div class="stat-number" id="totalEmails">0</div>
+                <div class="stat-label">Total Emails</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="usedCount">0</div>
+                <div class="stat-label">Used Today</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="remainingCount">0</div>
+                <div class="stat-label">Remaining</div>
+            </div>
+        </div>
+        
+        <div class="controls">
+            <button class="btn" onclick="getNextEmail()">➡️ Next Email</button>
+            <button class="btn" onclick="resetRotation()">🔄 Reset Rotation</button>
+            <button class="btn" onclick="exportData()">💾 Export Data</button>
+        </div>
+        
+        <div class="history">
+            <h3>📜 Recent Usage</h3>
+            <div class="history-list" id="historyList">
+                <div style="color: #888; text-align: center;">No usage history yet</div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="notification" id="notification"></div>
+    
+    <script>
+        let emailData = {
+            emails: [],
+            usage: {},
+            currentIndex: 0
+        };
+        
+        // Load data from localStorage
+        function loadData() {
+            const stored = localStorage.getItem('emailRotationData');
+            if (stored) {
+                emailData = JSON.parse(stored);
+            } else {
+                // Load initial data
+                loadInitialData();
+            }
+        }
+        
+        // Load initial email data
+        function loadInitialData() {
+            // Embed email data directly to avoid file loading issues
+            emailData = {
+                "emails": ["liucodingcodes@gmail.com", "liucodingcode.s@gmail.com", "liucodingcod.es@gmail.com", "liucodingcod.e.s@gmail.com", "liucodingco.des@gmail.com", "liucodingco.de.s@gmail.com", "liucodingco.d.es@gmail.com", "liucodingco.d.e.s@gmail.com", "liucodingc.odes@gmail.com", "liucodingc.ode.s@gmail.com", "liucodingc.od.es@gmail.com", "liucodingc.od.e.s@gmail.com", "liucodingc.o.des@gmail.com", "liucodingc.o.de.s@gmail.com", "liucodingc.o.d.es@gmail.com", "liucodingc.o.d.e.s@gmail.com", "liucoding.codes@gmail.com", "liucoding.code.s@gmail.com", "liucoding.cod.es@gmail.com", "liucoding.cod.e.s@gmail.com", "liucoding.co.des@gmail.com", "liucoding.co.de.s@gmail.com", "liucoding.co.d.es@gmail.com", "liucoding.co.d.e.s@gmail.com", "liucoding.c.odes@gmail.com", "liucoding.c.ode.s@gmail.com", "liucoding.c.od.es@gmail.com", "liucoding.c.od.e.s@gmail.com", "liucoding.c.o.des@gmail.com", "liucoding.c.o.de.s@gmail.com", "liucoding.c.o.d.es@gmail.com", "liucoding.c.o.d.e.s@gmail.com", "liucodin.gcodes@gmail.com", "liucodin.gcode.s@gmail.com", "liucodin.gcod.es@gmail.com", "liucodin.gcod.e.s@gmail.com", "liucodin.gco.des@gmail.com", "liucodin.gco.de.s@gmail.com", "liucodin.gco.d.es@gmail.com", "liucodin.gco.d.e.s@gmail.com", "liucodin.gc.odes@gmail.com", "liucodin.gc.ode.s@gmail.com", "liucodin.gc.od.es@gmail.com", "liucodin.gc.od.e.s@gmail.com", "liucodin.gc.o.des@gmail.com", "liucodin.gc.o.de.s@gmail.com", "liucodin.gc.o.d.es@gmail.com", "liucodin.gc.o.d.e.s@gmail.com", "liucodin.g.codes@gmail.com", "liucodin.g.code.s@gmail.com", "liucodin.g.cod.es@gmail.com", "liucodin.g.cod.e.s@gmail.com", "liucodin.g.co.des@gmail.com", "liucodin.g.co.de.s@gmail.com", "liucodin.g.co.d.es@gmail.com", "liucodin.g.co.d.e.s@gmail.com", "liucodin.g.c.odes@gmail.com", "liucodin.g.c.ode.s@gmail.com", "liucodin.g.c.od.es@gmail.com", "liucodin.g.c.od.e.s@gmail.com", "liucodin.g.c.o.des@gmail.com", "liucodin.g.c.o.de.s@gmail.com", "liucodin.g.c.o.d.es@gmail.com", "liucodin.g.c.o.d.e.s@gmail.com", "liucodi.ngcodes@gmail.com", "liucodi.ngcode.s@gmail.com", "liucodi.ngcod.es@gmail.com", "liucodi.ngcod.e.s@gmail.com", "liucodi.ngco.des@gmail.com", "liucodi.ngco.de.s@gmail.com", "liucodi.ngco.d.es@gmail.com", "liucodi.ngco.d.e.s@gmail.com", "liucodi.ngc.odes@gmail.com", "liucodi.ngc.ode.s@gmail.com", "liucodi.ngc.od.es@gmail.com", "liucodi.ngc.od.e.s@gmail.com", "liucodi.ngc.o.des@gmail.com", "liucodi.ngc.o.de.s@gmail.com", "liucodi.ngc.o.d.es@gmail.com", "liucodi.ngc.o.d.e.s@gmail.com", "liucodi.ng.codes@gmail.com", "liucodi.ng.code.s@gmail.com", "liucodi.ng.cod.es@gmail.com", "liucodi.ng.cod.e.s@gmail.com", "liucodi.ng.co.des@gmail.com", "liucodi.ng.co.de.s@gmail.com", "liucodi.ng.co.d.es@gmail.com", "liucodi.ng.co.d.e.s@gmail.com", "liucodi.ng.c.odes@gmail.com", "liucodi.ng.c.ode.s@gmail.com", "liucodi.ng.c.od.es@gmail.com", "liucodi.ng.c.od.e.s@gmail.com", "liucodi.ng.c.o.des@gmail.com", "liucodi.ng.c.o.de.s@gmail.com", "liucodi.ng.c.o.d.es@gmail.com", "liucodi.ng.c.o.d.e.s@gmail.com", "liucodi.n.gcodes@gmail.com", "liucodi.n.gcode.s@gmail.com", "liucodi.n.gcod.es@gmail.com", "liucodi.n.gcod.e.s@gmail.com", "liucodi.n.gco.des@gmail.com", "liucodi.n.gco.de.s@gmail.com", "liucodi.n.gco.d.es@gmail.com", "liucodi.n.gco.d.e.s@gmail.com", "liucodi.n.gc.odes@gmail.com", "liucodi.n.gc.ode.s@gmail.com", "liucodi.n.gc.od.es@gmail.com", "liucodi.n.gc.od.e.s@gmail.com", "liucodi.n.gc.o.des@gmail.com", "liucodi.n.gc.o.de.s@gmail.com", "liucodi.n.gc.o.d.es@gmail.com", "liucodi.n.gc.o.d.e.s@gmail.com", "liucodi.n.g.codes@gmail.com", "liucodi.n.g.code.s@gmail.com", "liucodi.n.g.cod.es@gmail.com", "liucodi.n.g.cod.e.s@gmail.com", "liucodi.n.g.co.des@gmail.com", "liucodi.n.g.co.de.s@gmail.com", "liucodi.n.g.co.d.es@gmail.com", "liucodi.n.g.co.d.e.s@gmail.com", "liucodi.n.g.c.odes@gmail.com", "liucodi.n.g.c.ode.s@gmail.com", "liucodi.n.g.c.od.es@gmail.com", "liucodi.n.g.c.od.e.s@gmail.com", "liucodi.n.g.c.o.des@gmail.com", "liucodi.n.g.c.o.de.s@gmail.com", "liucodi.n.g.c.o.d.es@gmail.com", "liucodi.n.g.c.o.d.e.s@gmail.com"],
+                "usage": {},
+                "currentIndex": 0
+            };
+            saveData();
+        }
+        
+        // Save data to localStorage
+        function saveData() {
+            localStorage.setItem('emailRotationData', JSON.stringify(emailData));
+        }
+        
+        // Get current email
+        function getCurrentEmail() {
+            if (emailData.emails.length === 0) return 'No emails available';
+            return emailData.emails[emailData.currentIndex];
+        }
+        
+        // Get next email and update rotation
+        function getNextEmail() {
+            if (emailData.emails.length === 0) {
+                showNotification('No emails available', 'error');
+                return;
+            }
+            
+            // Mark current email as used
+            const currentEmail = getCurrentEmail();
+            if (!emailData.usage[currentEmail]) {
+                emailData.usage[currentEmail] = [];
+            }
+            emailData.usage[currentEmail].push(new Date().toISOString());
+            
+            // Move to next email
+            emailData.currentIndex = (emailData.currentIndex + 1) % emailData.emails.length;
+            
+            saveData();
+            updateDisplay();
+            showNotification('Email rotated successfully!', 'success');
+        }
+        
+        // Copy email to clipboard
+        async function copyEmail() {
+            const email = getCurrentEmail();
+            try {
+                await navigator.clipboard.writeText(email);
+                const btn = document.getElementById('copyBtn');
+                btn.classList.add('copied');
+                btn.textContent = '✅ Copied!';
+                
+                setTimeout(() => {
+                    btn.classList.remove('copied');
+                    btn.textContent = '📋 Copy Email';
+                }, 2000);
+                
+                showNotification('Email copied to clipboard!', 'success');
+            } catch (error) {
+                showNotification('Failed to copy email', 'error');
+            }
+        }
+        
+        // Reset rotation
+        function resetRotation() {
+            if (confirm('Are you sure you want to reset the rotation? This will clear all usage history.')) {
+                emailData.currentIndex = 0;
+                emailData.usage = {};
+                saveData();
+                updateDisplay();
+                showNotification('Rotation reset successfully!', 'success');
+            }
+        }
+        
+        // Export data
+        function exportData() {
+            const dataStr = JSON.stringify(emailData, null, 2);
+            const dataBlob = new Blob([dataStr], {type: 'application/json'});
+            const url = URL.createObjectURL(dataBlob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `email-rotation-${new Date().toISOString().split('T')[0]}.json`;
+            link.click();
+            URL.revokeObjectURL(url);
+            showNotification('Data exported successfully!', 'success');
+        }
+        
+        // Show notification
+        function showNotification(message, type = 'success') {
+            const notification = document.getElementById('notification');
+            notification.textContent = message;
+            notification.style.background = type === 'success' ? '#4CAF50' : '#f44336';
+            notification.classList.add('show');
+            
+            setTimeout(() => {
+                notification.classList.remove('show');
+            }, 3000);
+        }
+        
+        // Update display
+        function updateDisplay() {
+            // Update current email
+            document.getElementById('currentEmail').textContent = getCurrentEmail();
+            
+            // Update stats
+            const totalEmails = emailData.emails.length;
+            const usedEmails = Object.keys(emailData.usage).length;
+            const remainingEmails = totalEmails - usedEmails;
+            
+            document.getElementById('totalEmails').textContent = totalEmails;
+            document.getElementById('usedCount').textContent = usedEmails;
+            document.getElementById('remainingCount').textContent = remainingEmails;
+            
+            // Update history
+            updateHistory();
+        }
+        
+        // Update history display
+        function updateHistory() {
+            const historyList = document.getElementById('historyList');
+            const allUsage = [];
+            
+            // Collect all usage
+            for (const [email, times] of Object.entries(emailData.usage)) {
+                for (const time of times) {
+                    allUsage.push({ email, time });
+                }
+            }
+            
+            // Sort by time (most recent first)
+            allUsage.sort((a, b) => new Date(b.time) - new Date(a.time));
+            
+            // Display last 10 items
+            const recentUsage = allUsage.slice(0, 10);
+            
+            if (recentUsage.length === 0) {
+                historyList.innerHTML = '<div style="color: #888; text-align: center;">No usage history yet</div>';
+                return;
+            }
+            
+            historyList.innerHTML = recentUsage.map(item => `
+                <div class="history-item">
+                    <span class="history-email">${item.email}</span>
+                    <span class="history-time">${new Date(item.time).toLocaleString()}</span>
+                </div>
+            `).join('');
+        }
+        
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            loadData();
+            updateDisplay();
+        });
+    </script>
+</body>
+</html>

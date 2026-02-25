@@ -1,0 +1,29 @@
+# GitHub Pages configuration
+title: Email Rotation System
+description: A simple web-based system to manage and rotate through multiple email addresses
+baseurl: ""
+url: ""
+
+# Build settings
+markdown: kramdown
+highlighter: rouge
+plugins:
+  - jekyll-feed
+
+# Exclude from processing
+exclude:
+  - Gemfile
+  - Gemfile.lock
+  - node_modules
+  - vendor/bundle/
+  - vendor/cache/
+  - vendor/gems/
+  - vendor/ruby/
+  - .git/
+  - .github/
+  - README.md
+
+# Include specific files
+include:
+  - _config.yml
+  - index.html
