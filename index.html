@@ -189,29 +189,34 @@
         }
     </style>
 </head>
-<body>
-    <div class="container">
-        <h1>📧 Email Rotation System</h1>
-        
-        <div class="current-email">
-            <div class="email-text" id="currentEmail">Loading...</div>
-            <button class="copy-btn" id="copyBtn" onclick="copyEmail()">📋 Copy Email</button>
-        </div>
-        
-        <div class="stats">
-            <div class="stat-card">
-                <div class="stat-number" id="totalEmails">0</div>
-                <div class="stat-label">Total Emails</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-number" id="usedCount">0</div>
-                <div class="stat-label">Used Today</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-number" id="remainingCount">0</div>
-                <div class="stat-label">Remaining</div>
-            </div>
-        </div>
+ <body>
+     <div class="container">
+         <h1>📧 Email Rotation System</h1>
+         
+         <div class="current-email">
+             <div class="email-text" id="currentEmail">Loading...</div>
+             <button class="copy-btn" id="copyBtn" onclick="copyEmail()">📋 Copy Email</button>
+         </div>
+
+         <div class="controls" style="margin-bottom: 20px;">
+             <input id="labelInput" type="text" placeholder="Optional label (e.g. facebook)" style="padding: 12px 14px; border-radius: 8px; border: 1px solid #ddd; min-width: 260px; font-size: 1em;" />
+             <button class="btn" onclick="applyLabel()">🏷️ Set Label</button>
+         </div>
+         
+         <div class="stats">
+             <div class="stat-card">
+                 <div class="stat-number" id="baseEmail">-</div>
+                 <div class="stat-label">Base Inbox</div>
+             </div>
+             <div class="stat-card">
+                 <div class="stat-number" id="usedCount">0</div>
+                 <div class="stat-label">Aliases Generated</div>
+             </div>
+             <div class="stat-card">
+                 <div class="stat-number" id="currentNumber">0</div>
+                 <div class="stat-label">Next Number</div>
+             </div>
+         </div>
         
         <div class="controls">
             <button class="btn" onclick="getNextEmail()">➡️ Next Email</button>
@@ -230,65 +235,86 @@
     <div class="notification" id="notification"></div>
     
     <script>
+        const BASE_INBOX = 'liutechnationcode@gmail.com';
+        const STORAGE_KEY = 'emailAliasGeneratorData';
+        const LEGACY_STORAGE_KEY = 'emailRotationData';
+
         let emailData = {
-            emails: [],
-            usage: {},
-            currentIndex: 0
+            baseInbox: BASE_INBOX,
+            label: '',
+            nextNumber: 1,
+            usage: {}
         };
         
         // Load data from localStorage
         function loadData() {
-            const stored = localStorage.getItem('emailRotationData');
+            const stored = localStorage.getItem(STORAGE_KEY);
             if (stored) {
-                emailData = JSON.parse(stored);
-            } else {
-                // Load initial data
-                loadInitialData();
+                try {
+                    emailData = JSON.parse(stored);
+                } catch {
+                    loadInitialData();
+                }
+                return;
             }
+
+            const legacy = localStorage.getItem(LEGACY_STORAGE_KEY);
+            if (legacy) {
+                localStorage.removeItem(LEGACY_STORAGE_KEY);
+            }
+
+            loadInitialData();
         }
         
         // Load initial email data
         function loadInitialData() {
-            // Embed email data directly to avoid file loading issues
             emailData = {
-                "emails": ["liucodingcodes@gmail.com", "liucodingcode.s@gmail.com", "liucodingcod.es@gmail.com", "liucodingcod.e.s@gmail.com", "liucodingco.des@gmail.com", "liucodingco.de.s@gmail.com", "liucodingco.d.es@gmail.com", "liucodingco.d.e.s@gmail.com", "liucodingc.odes@gmail.com", "liucodingc.ode.s@gmail.com", "liucodingc.od.es@gmail.com", "liucodingc.od.e.s@gmail.com", "liucodingc.o.des@gmail.com", "liucodingc.o.de.s@gmail.com", "liucodingc.o.d.es@gmail.com", "liucodingc.o.d.e.s@gmail.com", "liucoding.codes@gmail.com", "liucoding.code.s@gmail.com", "liucoding.cod.es@gmail.com", "liucoding.cod.e.s@gmail.com", "liucoding.co.des@gmail.com", "liucoding.co.de.s@gmail.com", "liucoding.co.d.es@gmail.com", "liucoding.co.d.e.s@gmail.com", "liucoding.c.odes@gmail.com", "liucoding.c.ode.s@gmail.com", "liucoding.c.od.es@gmail.com", "liucoding.c.od.e.s@gmail.com", "liucoding.c.o.des@gmail.com", "liucoding.c.o.de.s@gmail.com", "liucoding.c.o.d.es@gmail.com", "liucoding.c.o.d.e.s@gmail.com", "liucodin.gcodes@gmail.com", "liucodin.gcode.s@gmail.com", "liucodin.gcod.es@gmail.com", "liucodin.gcod.e.s@gmail.com", "liucodin.gco.des@gmail.com", "liucodin.gco.de.s@gmail.com", "liucodin.gco.d.es@gmail.com", "liucodin.gco.d.e.s@gmail.com", "liucodin.gc.odes@gmail.com", "liucodin.gc.ode.s@gmail.com", "liucodin.gc.od.es@gmail.com", "liucodin.gc.od.e.s@gmail.com", "liucodin.gc.o.des@gmail.com", "liucodin.gc.o.de.s@gmail.com", "liucodin.gc.o.d.es@gmail.com", "liucodin.gc.o.d.e.s@gmail.com", "liucodin.g.codes@gmail.com", "liucodin.g.code.s@gmail.com", "liucodin.g.cod.es@gmail.com", "liucodin.g.cod.e.s@gmail.com", "liucodin.g.co.des@gmail.com", "liucodin.g.co.de.s@gmail.com", "liucodin.g.co.d.es@gmail.com", "liucodin.g.co.d.e.s@gmail.com", "liucodin.g.c.odes@gmail.com", "liucodin.g.c.ode.s@gmail.com", "liucodin.g.c.od.es@gmail.com", "liucodin.g.c.od.e.s@gmail.com", "liucodin.g.c.o.des@gmail.com", "liucodin.g.c.o.de.s@gmail.com", "liucodin.g.c.o.d.es@gmail.com", "liucodin.g.c.o.d.e.s@gmail.com", "liucodi.ngcodes@gmail.com", "liucodi.ngcode.s@gmail.com", "liucodi.ngcod.es@gmail.com", "liucodi.ngcod.e.s@gmail.com", "liucodi.ngco.des@gmail.com", "liucodi.ngco.de.s@gmail.com", "liucodi.ngco.d.es@gmail.com", "liucodi.ngco.d.e.s@gmail.com", "liucodi.ngc.odes@gmail.com", "liucodi.ngc.ode.s@gmail.com", "liucodi.ngc.od.es@gmail.com", "liucodi.ngc.od.e.s@gmail.com", "liucodi.ngc.o.des@gmail.com", "liucodi.ngc.o.de.s@gmail.com", "liucodi.ngc.o.d.es@gmail.com", "liucodi.ngc.o.d.e.s@gmail.com", "liucodi.ng.codes@gmail.com", "liucodi.ng.code.s@gmail.com", "liucodi.ng.cod.es@gmail.com", "liucodi.ng.cod.e.s@gmail.com", "liucodi.ng.co.des@gmail.com", "liucodi.ng.co.de.s@gmail.com", "liucodi.ng.co.d.es@gmail.com", "liucodi.ng.co.d.e.s@gmail.com", "liucodi.ng.c.odes@gmail.com", "liucodi.ng.c.ode.s@gmail.com", "liucodi.ng.c.od.es@gmail.com", "liucodi.ng.c.od.e.s@gmail.com", "liucodi.ng.c.o.des@gmail.com", "liucodi.ng.c.o.de.s@gmail.com", "liucodi.ng.c.o.d.es@gmail.com", "liucodi.ng.c.o.d.e.s@gmail.com", "liucodi.n.gcodes@gmail.com", "liucodi.n.gcode.s@gmail.com", "liucodi.n.gcod.es@gmail.com", "liucodi.n.gcod.e.s@gmail.com", "liucodi.n.gco.des@gmail.com", "liucodi.n.gco.de.s@gmail.com", "liucodi.n.gco.d.es@gmail.com", "liucodi.n.gco.d.e.s@gmail.com", "liucodi.n.gc.odes@gmail.com", "liucodi.n.gc.ode.s@gmail.com", "liucodi.n.gc.od.es@gmail.com", "liucodi.n.gc.od.e.s@gmail.com", "liucodi.n.gc.o.des@gmail.com", "liucodi.n.gc.o.de.s@gmail.com", "liucodi.n.gc.o.d.es@gmail.com", "liucodi.n.gc.o.d.e.s@gmail.com", "liucodi.n.g.codes@gmail.com", "liucodi.n.g.code.s@gmail.com", "liucodi.n.g.cod.es@gmail.com", "liucodi.n.g.cod.e.s@gmail.com", "liucodi.n.g.co.des@gmail.com", "liucodi.n.g.co.de.s@gmail.com", "liucodi.n.g.co.d.es@gmail.com", "liucodi.n.g.co.d.e.s@gmail.com", "liucodi.n.g.c.odes@gmail.com", "liucodi.n.g.c.ode.s@gmail.com", "liucodi.n.g.c.od.es@gmail.com", "liucodi.n.g.c.od.e.s@gmail.com", "liucodi.n.g.c.o.des@gmail.com", "liucodi.n.g.c.o.de.s@gmail.com", "liucodi.n.g.c.o.d.es@gmail.com", "liucodi.n.g.c.o.d.e.s@gmail.com"],
-                "usage": {},
-                "currentIndex": 0
+                baseInbox: BASE_INBOX,
+                label: '',
+                nextNumber: 1,
+                usage: {}
             };
             saveData();
         }
         
         // Save data to localStorage
         function saveData() {
-            localStorage.setItem('emailRotationData', JSON.stringify(emailData));
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(emailData));
+        }
+
+        function sanitizeLabel(label) {
+            return String(label || '')
+                .trim()
+                .replace(/\s+/g, '-')
+                .replace(/[^a-zA-Z0-9_-]/g, '');
+        }
+
+        function getCurrentAlias() {
+            const label = sanitizeLabel(emailData.label);
+            const n = Number(emailData.nextNumber || 1);
+            const plusPart = label ? `${label}_${n}` : `${n}`;
+            const [local] = String(emailData.baseInbox).split('@');
+            return `${local}+${plusPart}@gmail.com`;
         }
         
         // Get current email
         function getCurrentEmail() {
-            if (emailData.emails.length === 0) return 'No emails available';
-            return emailData.emails[emailData.currentIndex];
+            return getCurrentAlias();
         }
         
         // Get next email and update rotation
         function getNextEmail() {
-            if (emailData.emails.length === 0) {
-                showNotification('No emails available', 'error');
-                return;
-            }
-            
-            // Mark current email as used
             const currentEmail = getCurrentEmail();
             if (!emailData.usage[currentEmail]) {
                 emailData.usage[currentEmail] = [];
             }
             emailData.usage[currentEmail].push(new Date().toISOString());
-            
-            // Move to next email
-            emailData.currentIndex = (emailData.currentIndex + 1) % emailData.emails.length;
-            
+
+            emailData.nextNumber = Number(emailData.nextNumber || 1) + 1;
+
             saveData();
             updateDisplay();
-            showNotification('Email rotated successfully!', 'success');
+            showNotification('Alias generated successfully!', 'success');
         }
         
         // Copy email to clipboard
@@ -313,13 +339,21 @@
         
         // Reset rotation
         function resetRotation() {
-            if (confirm('Are you sure you want to reset the rotation? This will clear all usage history.')) {
-                emailData.currentIndex = 0;
+            if (confirm('Are you sure you want to reset? This will clear all usage history and restart numbering.')) {
+                emailData.nextNumber = 1;
                 emailData.usage = {};
                 saveData();
                 updateDisplay();
-                showNotification('Rotation reset successfully!', 'success');
+                showNotification('Reset successfully!', 'success');
             }
+        }
+
+        function applyLabel() {
+            const input = document.getElementById('labelInput');
+            emailData.label = sanitizeLabel(input.value);
+            saveData();
+            updateDisplay();
+            showNotification('Label saved!', 'success');
         }
         
         // Export data
@@ -353,13 +387,16 @@
             document.getElementById('currentEmail').textContent = getCurrentEmail();
             
             // Update stats
-            const totalEmails = emailData.emails.length;
             const usedEmails = Object.keys(emailData.usage).length;
-            const remainingEmails = totalEmails - usedEmails;
             
-            document.getElementById('totalEmails').textContent = totalEmails;
+            document.getElementById('baseEmail').textContent = emailData.baseInbox;
             document.getElementById('usedCount').textContent = usedEmails;
-            document.getElementById('remainingCount').textContent = remainingEmails;
+            document.getElementById('currentNumber').textContent = Number(emailData.nextNumber || 1);
+
+            const labelInput = document.getElementById('labelInput');
+            if (labelInput && !labelInput.value) {
+                labelInput.value = emailData.label || '';
+            }
             
             // Update history
             updateHistory();

@@ -1,22 +1,22 @@
 # Email Rotation System
 
-A simple web-based system to manage and rotate through multiple email addresses automatically, ensuring you don't reuse the same email repeatedly.
+A simple web-based system to generate and track Gmail `+` aliases so you can use a new email every time without creating new inboxes.
 
 ## Features
 
-- 🔄 **Automatic Email Rotation** - Cycles through your email list automatically
+- 🔄 **Infinite Gmail `+` Aliases** - Generates `liutechnationcode+1@gmail.com`, `liutechnationcode+label_2@gmail.com`, etc.
 - 📋 **One-Click Copy** - Copy current email to clipboard instantly
-- 📊 **Usage Statistics** - Track how many emails have been used
+- 📊 **Usage Statistics** - Track how many aliases have been generated
 - 📜 **Usage History** - View recent email usage with timestamps
 - 💾 **Data Export** - Export your usage data as JSON
-- 🔄 **Reset Function** - Reset rotation and clear history when needed
+- 🔄 **Reset Function** - Clear history and restart numbering
 
 ## How to Use
 
 1. Open `index.html` in your web browser
-2. The system will automatically load all your email addresses
-3. Click "📋 Copy Email" to copy the current email to clipboard
-4. Click "➡️ Next Email" to rotate to the next email in the list
+2. (Optional) Type a label (example: `facebook`) and click **Set Label**
+3. Click "📋 Copy Email" to copy the current alias to clipboard
+4. Click "➡️ Next Email" to generate the next alias
 5. View usage statistics and history on the dashboard
 
 ## File Structure
@@ -24,21 +24,11 @@ A simple web-based system to manage and rotate through multiple email addresses 
 ```
 emails multi/
 ├── index.html          # Main web application
-├── emails.json         # Email addresses and rotation data
 └── README.md          # This file
 ```
 
-## Email Addresses
-
-The system includes 120 email variations based on "liucodingcodes" with different dot placements:
-- liucodingcodes@gmail.com
-- liucodingcode.s@gmail.com
-- liucodingcod.es@gmail.com
-- ...and 117 more variations
-
 ## Data Storage
 
-- Email data is stored in `emails.json`
 - Usage history is saved in browser's localStorage
 - Data persists between browser sessions
 - Export functionality for backup
